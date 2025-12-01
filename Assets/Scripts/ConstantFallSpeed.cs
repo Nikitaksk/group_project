@@ -6,13 +6,16 @@ public class ConstantFallSpeed : MonoBehaviour
     public float fallSpeed = 5f;
     private Rigidbody2D rb;
 
-    void Start()
+    void Awake()
     {
         // Get the Rigidbody2D component attached to this object
         rb = GetComponent<Rigidbody2D>();
+    }
 
+    // OnEnable is called every time this component is set to active
+    void OnEnable()
+    {
         // Set the velocity to a constant downward speed
-        // The x component is 0 (no sideways movement), and the y component is -fallSpeed.
         rb.linearVelocity = new Vector2(0, -fallSpeed);
     }
 
