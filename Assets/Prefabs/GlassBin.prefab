@@ -164,5 +164,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a815ca119f1b4b49a0cb77bd458ff2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BinController
-  acceptedTrashType: 0
+  acceptedTrashType: 3
   binSpriteRenderer: {fileID: 0}
