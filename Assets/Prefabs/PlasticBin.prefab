@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7860277980124967504}
   - component: {fileID: 7634218854147090942}
   - component: {fileID: 6655580872091703459}
+  - component: {fileID: -5028742212622848051}
   m_Layer: 0
   m_Name: PlasticBin
   m_TagString: Untagged
@@ -151,3 +152,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrashBin
   acceptedTrashType: 1
+--- !u!114 &-5028742212622848051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6626486951679849420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a815ca119f1b4b49a0cb77bd458ff2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BinController
+  acceptedTrashType: 1
+  binSpriteRenderer: {fileID: 0}
