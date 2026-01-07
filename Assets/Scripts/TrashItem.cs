@@ -9,7 +9,7 @@ public class TrashItem : MonoBehaviour
         Plastic,
         Organic,
         Glass,
-        Metal
+        Other
     }
 
     // This variable will hold the type for each specific trash prefab.
