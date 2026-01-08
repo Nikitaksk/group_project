@@ -7,7 +7,9 @@ public class UIManager : MonoBehaviour
     public static UIManager instance; // Singleton instance
 
     public TMP_Text feedbackText;
+    public TMP_Text scoreText;
     public float fadeDuration = 1.5f;
+    private int currentScore = 0;
 
     void Awake()
     {
@@ -22,12 +24,38 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        UpdateScoreUI();
+    }
+
+    public void AddScore(int amount)
+    {
+        currentScore += amount;
+
+        if (currentScore < 0)
+        {
+            currentScore = 0;
+        }
+
+        UpdateScoreUI();
+    }
+
+    void UpdateScoreUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = "Punkty: " + currentScore;
+        }
+    }
+
     // Call this method from other scripts to show a message
     public void ShowFeedbackMessage(string message, Color color)
     {
         if (feedbackText != null)
         {
             feedbackText.text = message;
+            StopAllCoroutines();
             // Start the fade-in/fade-out coroutine
             StartCoroutine(FadeText(color));
         }

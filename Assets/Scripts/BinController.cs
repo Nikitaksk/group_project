@@ -72,10 +72,12 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
             if (acceptedTrashType == trash.trashType)
             {
                 UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
+                UIManager.instance.AddScore(1);
             }
             else
             {
                 UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
+                UIManager.instance.AddScore(-1);
             }
             Destroy(other.gameObject);
         }

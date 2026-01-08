@@ -38,6 +38,7 @@ public class TrashItem : MonoBehaviour
                 if (UIManager.instance != null)
                 {
                     UIManager.instance.ShowFeedbackMessage("Spadło!", Color.red);
+                    UIManager.instance.AddScore(-1);
                 }
             }
         }
