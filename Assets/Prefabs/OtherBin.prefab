@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6655580872091703459}
   - component: {fileID: -1915227519474510702}
   m_Layer: 0
-  m_Name: ResiduesBin
+  m_Name: OtherBin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
