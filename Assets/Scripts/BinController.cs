@@ -78,6 +78,7 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
             {
                 UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
                 UIManager.instance.AddScore(-1);
+                UIManager.instance.AddMistake(acceptedTrashType);
             }
             Destroy(other.gameObject);
         }

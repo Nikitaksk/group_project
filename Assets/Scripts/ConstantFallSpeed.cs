@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class ConstantFallSpeed : MonoBehaviour
 {
-    public float fallSpeed = 5f;
+    public float fallSpeed = 0.5f;
     private Rigidbody2D rb;
 
     void Awake()
