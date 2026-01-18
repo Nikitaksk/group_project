@@ -64,7 +64,15 @@ public class UIManager : MonoBehaviour
     // --- WYŚWIETLANIE INFORMACJI ---
     void ShowEducationalInfo(TrashItem.TrashType type)
     {
+        StopAllCoroutines();
+
+        if (feedbackText != null)
+        {
+            feedbackText.text = "";
+        }
+
         Time.timeScale = 0f;
+        UpdateUI();
 
         string title = "";
         string content = "";
@@ -112,7 +120,7 @@ public class UIManager : MonoBehaviour
     public void ReturnToMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("SecondMenu"); // Upewnij się, że masz scenę o tej nazwie
+        SceneManager.LoadScene("SecondaryMenu");
     }
 
     // --- AKTUALIZACJA TEKSTÓW NA EKRANIE ---
@@ -123,7 +131,6 @@ public class UIManager : MonoBehaviour
 
         if (streakText != null)
         {
-            // Zmienia kolor na czerwony, jeśli gracz ma 2 błędy (ostrzeżenie)
             if (currentStreak == 2) streakText.color = Color.red;
             else streakText.color = Color.white;
 
@@ -131,7 +138,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // (Kod ShowFeedbackMessage i FadeText pozostaje bez zmian)
     public void ShowFeedbackMessage(string message, Color color)
     {
         if (feedbackText != null)
