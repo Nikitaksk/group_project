@@ -2,24 +2,31 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
+
+    [SerializeField] private Image[] hearts;
+
     [Header("UI Elements")]
-    public TMP_Text feedbackText;     
-    public TMP_Text scoreText;        
-    public TMP_Text streakText;       
+    public TMP_Text feedbackText;
+    public TMP_Text scoreText;
+    public TMP_Text streakText;
 
     [Header("Educational Panel Settings")]
-    public GameObject infoPanel;     
-    public TMP_Text infoHeaderText;   
-    public TMP_Text infoContentText;  
+    public GameObject infoPanel;
+    public TMP_Text infoHeaderText;
+    public TMP_Text infoContentText;
 
     [Header("Game Settings")]
-    public int maxConsecutiveErrors = 3; 
-    private int currentStreak = 0;      
+
+    public int maxConsecutiveErrors = 3;
+
+    public int playerHealth = 3;
+    private int currentStreak = 0;
     private int currentScore = 0;
 
     void Awake()
@@ -51,10 +58,11 @@ public class UIManager : MonoBehaviour
     // --- BŁĄD  ---
     public void AddMistake(TrashItem.TrashType problemType)
     {
-        currentStreak++; 
+        currentStreak++;
+        playerHealth--;
         UpdateUI();
 
- 
+
         if (currentStreak >= maxConsecutiveErrors)
         {
             ShowEducationalInfo(problemType);
@@ -110,7 +118,7 @@ public class UIManager : MonoBehaviour
     // --- PRZYCISKI ---
     public void ResumeGame()
     {
-        currentStreak = 0; 
+        currentStreak = 0;
         UpdateUI();
 
         if (infoPanel != null) infoPanel.SetActive(false);
@@ -124,8 +132,27 @@ public class UIManager : MonoBehaviour
     }
 
     // --- AKTUALIZACJA TEKSTÓW NA EKRANIE ---
+
+    void UpdateHealthBar()
+    {
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            if (i < (maxConsecutiveErrors - currentStreak))
+            {
+                hearts[i].enabled = true;
+            }
+            else
+            {
+                hearts[i].enabled = false;
+            }
+        }
+    }
+
     void UpdateUI()
     {
+
+        UpdateHealthBar();
+
         if (scoreText != null)
             scoreText.text = "Punkty: " + currentScore;
 
