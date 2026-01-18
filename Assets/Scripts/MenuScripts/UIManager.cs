@@ -25,8 +25,7 @@ public class UIManager : MonoBehaviour
 
     public int maxConsecutiveErrors = 3;
 
-    public int playerHealth = 3;
-    private int currentStreak = 0;
+    private int currentErrorStreak = 0;
     private int currentScore = 0;
 
     void Awake()
@@ -46,7 +45,7 @@ public class UIManager : MonoBehaviour
 
         if (amount > 0)
         {
-            currentStreak = 0;
+            currentErrorStreak = 0;
         }
 
         currentScore += amount;
@@ -58,12 +57,11 @@ public class UIManager : MonoBehaviour
     // --- BŁĄD  ---
     public void AddMistake(TrashItem.TrashType problemType)
     {
-        currentStreak++;
-        playerHealth--;
+        currentErrorStreak++;
         UpdateUI();
 
 
-        if (currentStreak >= maxConsecutiveErrors)
+        if (currentErrorStreak >= maxConsecutiveErrors)
         {
             ShowEducationalInfo(problemType);
         }
@@ -118,7 +116,7 @@ public class UIManager : MonoBehaviour
     // --- PRZYCISKI ---
     public void ResumeGame()
     {
-        currentStreak = 0;
+        currentErrorStreak = 0;
         UpdateUI();
 
         if (infoPanel != null) infoPanel.SetActive(false);
@@ -137,7 +135,7 @@ public class UIManager : MonoBehaviour
     {
         for (int i = 0; i < hearts.Length; i++)
         {
-            if (i < (maxConsecutiveErrors - currentStreak))
+            if (i < (maxConsecutiveErrors - currentErrorStreak))
             {
                 hearts[i].enabled = true;
             }
@@ -158,10 +156,10 @@ public class UIManager : MonoBehaviour
 
         if (streakText != null)
         {
-            if (currentStreak == 2) streakText.color = Color.red;
+            if (currentErrorStreak == 2) streakText.color = Color.red;
             else streakText.color = Color.white;
 
-            streakText.text = $"Seria błędów: {currentStreak} / {maxConsecutiveErrors}";
+            streakText.text = $"Seria błędów: {currentErrorStreak} / {maxConsecutiveErrors}";
         }
     }
 
