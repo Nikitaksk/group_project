@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class ConstantFallSpeed : MonoBehaviour
 {
-    public float fallSpeed = 0.5f;
+    public float fallSpeed = 2.0f;
     private Rigidbody2D rb;
 
     void Awake()
@@ -13,7 +13,7 @@ public class ConstantFallSpeed : MonoBehaviour
     }
 
     // OnEnable is called every time this component is set to active
-    void OnEnable()
+    void FixedUpdate()
     {
         // Set the velocity to a constant downward speed
         rb.linearVelocity = new Vector2(0, -fallSpeed);
