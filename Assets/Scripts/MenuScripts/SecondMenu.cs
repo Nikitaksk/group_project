@@ -1,10 +1,15 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using EasyTransition;
 
 public class SecondMenu : MonoBehaviour
 {
     [Header("UI Panels")]
     public GameObject modeSelectPanel;
+
+    public TransitionSettings transition;
+    public float loadDelay;
+
 
     public void OpenModeSelection()
     {
@@ -20,6 +25,6 @@ public class SecondMenu : MonoBehaviour
     {
         GameData.SelectedBinIndex = binIndex;
 
-        SceneManager.LoadScene("Dropper");
+        TransitionManager.Instance().Transition("Dropper", transition, loadDelay);
     }
 }

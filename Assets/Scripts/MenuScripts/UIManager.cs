@@ -152,7 +152,7 @@ public class UIManager : MonoBehaviour
         UpdateHealthBar();
 
         if (scoreText != null)
-            scoreText.text = "Punkty: " + currentScore;
+            scoreText.text = "PUNKTY: " + currentScore;
 
         if (streakText != null)
         {
