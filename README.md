@@ -1,6 +1,18 @@
 # Project Grupowy
 
-## Getting Started
+## Definition of Done (DoD)
+
+A Product Backlog Item (User Story) is only considered "Done" and ready to be closed when all of the following conditions are met by the development team:
+
+1. **Code & Assets Integrated:** All necessary code is written, cleanly formatted, and integrated into the Unity project without breaking existing features.
+
+2. **No Console Errors:** The Unity Console displays zero errors and no critical warnings during gameplay.
+
+3. **Acceptance Criteria Met:** Every specific Acceptance Criterion defined in the GitHub Issue has been manually tested and passed.
+
+4. **Peer Reviewed:** The feature or code changes have been reviewed and approved by at least one other team member (e.g., via a GitHub Pull Request).
+
+5. **Merged to Main:** The branch containing the finished feature is successfully merged into the main branch on GitHub with all merge conflicts resolved.
 
 ### Launching the Project
 
