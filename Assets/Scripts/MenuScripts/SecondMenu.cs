@@ -18,8 +18,15 @@ public class SecondMenu : MonoBehaviour
 
     public void LoadDropper(int binIndex)
     {
+        GameData.CurrentGameMode = GameData.GameMode.SingleBin;
         GameData.SelectedBinIndex = binIndex;
 
         SceneManager.LoadScene("Dropper");
+    }
+
+    public void LoadCleanTheRoom()
+    {
+        GameData.CurrentGameMode = GameData.GameMode.MultiBin;
+        SceneManager.LoadScene("CleanTheRoom");
     }
 }

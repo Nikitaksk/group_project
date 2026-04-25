@@ -15,6 +15,11 @@ public class ConstantFallSpeed : MonoBehaviour
     // OnEnable is called every time this component is set to active
     void FixedUpdate()
     {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
         // Set the velocity to a constant downward speed
         rb.linearVelocity = new Vector2(0, -fallSpeed);
     }
