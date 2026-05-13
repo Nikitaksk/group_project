@@ -757,6 +757,7 @@ GameObject:
   m_Component:
   - component: {fileID: 640316724}
   - component: {fileID: 640316723}
+  - component: {fileID: 640316725}
   m_Layer: 0
   m_Name: TrashManager
   m_TagString: Untagged
@@ -799,6 +800,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &640316725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 640316722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8361cc31ea0c147d7b9bea7de5d1b2c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIManager
+  hearts: []
+  feedbackText: {fileID: 0}
+  scoreText: {fileID: 0}
+  streakText: {fileID: 0}
+  infoPanel: {fileID: 0}
+  infoHeaderText: {fileID: 0}
+  infoContentText: {fileID: 0}
+  maxConsecutiveErrors: 3
 --- !u!114 &723767382 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: -5781317859565941160, guid: ed7a8fd21342f484d9d27befe9acd3c4, type: 3}
