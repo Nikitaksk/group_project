@@ -4,16 +4,16 @@ using UnityEngine.SceneManagement;
 public class SecondMenu : MonoBehaviour
 {
     [Header("UI Panels")]
-    public GameObject modeSelectPanel;
+    public Animator panelAnimator;
 
     public void OpenModeSelection()
     {
-        modeSelectPanel.SetActive(true);
+        panelAnimator.SetTrigger("Open");
     }
 
     public void CloseModeSelection()
     {
-        modeSelectPanel.SetActive(false);
+        panelAnimator.SetTrigger("Close");
     }
 
     public void LoadDropper(int binIndex)
