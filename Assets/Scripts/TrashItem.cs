@@ -3,7 +3,6 @@ using UnityEngine.EventSystems;
 
 public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    // Defines the possible types of trash. You can add more here!
     public enum TrashType
     {
         Paper,
@@ -14,17 +13,18 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
     }
 
     public TrashType trashType;
-    
+
     private Vector3 startPosition;
     private Vector3 dragOffset;
-    private bool isDragging = false;
+    private bool isDragging;
+    private bool startPositionSet;
+    private const float DestroyY = -10f;
+    private const float BinProbeRadius = 0.2f;
+
     public bool IsDragging => isDragging;
-    private bool startPositionSet = false;
-    private float destroyY = -10f; // Lowered for room cleaning mode
 
     void Start()
     {
-        // Save the initial position when the object starts
         if (!startPositionSet)
         {
             startPosition = transform.position;
@@ -34,9 +34,10 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     void Update()
     {
-        // Only apply falling logic if we are NOT in MultiBin (CleanTheRoom) mode
-        // Or if the object has been moved far below the screen
-        if (GameData.CurrentGameMode != GameData.GameMode.MultiBin && transform.position.y < destroyY)
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            return;
+
+        if (transform.position.y < DestroyY)
         {
             CheckIfMissed();
             Destroy(gameObject);
@@ -52,73 +53,85 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin &&
-            UIManager.instance != null &&
-            UIManager.instance.IsGameOver)
+        if (IsRoomCleaningBlocked())
             return;
 
         isDragging = true;
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(eventData.position);
-        mousePos.z = 0;
-        dragOffset = transform.position - mousePos;
+        Vector3 pointerWorld = ScreenToWorld(eventData.position);
+        dragOffset = transform.position - pointerWorld;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(eventData.position);
-        mousePos.z = 0;
-        transform.position = mousePos + dragOffset;
+        transform.position = ScreenToWorld(eventData.position) + dragOffset;
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         isDragging = false;
-        
-        // Check if we are over a bin
+
         BinController bin = FindOverlappingBin();
-        
-        if (bin != null)
+        if (bin == null)
         {
-            if (bin.acceptedTrashType == trashType)
-            {
-                if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
-                    UIManager.instance.HandleRoomCleaningResult(true, trashType);
-                else
-                {
-                    UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
-                    UIManager.instance.AddScore(1);
-                }
-                Destroy(gameObject);
-            }
-            else
-            {
-                if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
-                    UIManager.instance.HandleRoomCleaningResult(false, trashType);
-                else
-                {
-                    UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
-                    UIManager.instance.AddScore(-1);
-                    UIManager.instance.AddMistake(trashType);
-                }
-                ReturnToStart();
-            }
-        }
-        else
-        {
-            // If dropped in the middle of nowhere, snap back
             ReturnToStart();
+            return;
         }
+
+        if (bin.acceptedTrashType == trashType)
+            HandleCorrectBin();
+        else
+            HandleWrongBin();
     }
 
-    private void ReturnToStart()
+    void HandleCorrectBin()
+    {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            UIManager.instance.HandleRoomCleaningResult(true, trashType);
+        else
+        {
+            UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
+            UIManager.instance.AddScore(1);
+        }
+
+        Destroy(gameObject);
+    }
+
+    void HandleWrongBin()
+    {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            UIManager.instance.HandleRoomCleaningResult(false, trashType);
+        else
+        {
+            UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
+            UIManager.instance.AddScore(-1);
+            UIManager.instance.AddMistake(trashType);
+        }
+
+        ReturnToStart();
+    }
+
+    bool IsRoomCleaningBlocked()
+    {
+        return GameData.CurrentGameMode == GameData.GameMode.MultiBin
+            && UIManager.instance != null
+            && UIManager.instance.IsGameOver;
+    }
+
+    static Vector3 ScreenToWorld(Vector2 screenPosition)
+    {
+        Vector3 world = Camera.main.ScreenToWorldPoint(screenPosition);
+        world.z = 0f;
+        return world;
+    }
+
+    void ReturnToStart()
     {
         transform.position = startPosition;
     }
 
-    private BinController FindOverlappingBin()
+    BinController FindOverlappingBin()
     {
-        const float probeRadius = 0.2f;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, probeRadius);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, BinProbeRadius);
 
         foreach (Collider2D hit in hits)
         {
@@ -135,19 +148,18 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     void CheckIfMissed()
     {
-        BinController[] allBins = FindObjectsOfType<BinController>();
-
-        foreach (BinController bin in allBins)
+        foreach (BinController bin in FindObjectsOfType<BinController>())
         {
-            if (bin.gameObject.activeInHierarchy && trashType == bin.acceptedTrashType)
+            if (!bin.gameObject.activeInHierarchy || trashType != bin.acceptedTrashType)
+                continue;
+
+            if (UIManager.instance != null)
             {
-                if (UIManager.instance != null)
-                {
-                    UIManager.instance.ShowFeedbackMessage("Spadło!", Color.red);
-                    UIManager.instance.AddScore(-1);
-                }
-                return; 
+                UIManager.instance.ShowFeedbackMessage("Spadło!", Color.red);
+                UIManager.instance.AddScore(-1);
             }
+
+            return;
         }
     }
 }

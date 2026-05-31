@@ -3,16 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class ConstantFallSpeed : MonoBehaviour
 {
-    public float fallSpeed = 2.0f;
+    public float fallSpeed = 2f;
     private Rigidbody2D rb;
 
     void Awake()
     {
-        // Get the Rigidbody2D component attached to this object
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // OnEnable is called every time this component is set to active
     void FixedUpdate()
     {
         if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
@@ -20,25 +18,18 @@ public class ConstantFallSpeed : MonoBehaviour
             rb.linearVelocity = Vector2.zero;
             return;
         }
-        // Set the velocity to a constant downward speed
-        rb.linearVelocity = new Vector2(0, -fallSpeed);
+
+        rb.linearVelocity = new Vector2(0f, -fallSpeed);
     }
 
-    // This function is called when the object collides with another 2D collider
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if the object we collided with has the "Ground" tag
         if (collision.gameObject.CompareTag("Ground"))
-        {
-            // Destroy this falling object
             Destroy(gameObject);
-        }
     }
 
-    // This function is called when the renderer is no longer visible by any camera
     void OnBecameInvisible()
     {
-        // Destroy this falling object
         Destroy(gameObject);
     }
 }

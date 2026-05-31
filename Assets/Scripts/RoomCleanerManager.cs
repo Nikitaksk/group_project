@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class RoomCleanerManager : MonoBehaviour
 {
@@ -8,57 +8,41 @@ public class RoomCleanerManager : MonoBehaviour
     public TrashItem[] trashItemsInRoom;
 
     [Header("Testing")]
-    [Tooltip("If true, it will run setup even if the GameMode isn't set to MultiBin (useful for testing scene directly).")]
+    [Tooltip("If true, setup runs even when opening the scene directly from the editor.")]
     public bool forceInitialization = true;
-
-    private List<TrashItem> managedItems = new List<TrashItem>();
 
     void Start()
     {
-        Debug.Log($"RoomCleanerManager: Start called. Current Mode: {GameData.CurrentGameMode}");
-
         if (forceInitialization || GameData.CurrentGameMode == GameData.GameMode.MultiBin)
-        {
             SetupRoomCleaning();
-        }
     }
 
     [ContextMenu("Setup Cleaning Mode")]
     public void SetupRoomCleaning()
     {
         GameData.CurrentGameMode = GameData.GameMode.MultiBin;
-        managedItems.Clear();
 
         if (trashItemsInRoom == null || trashItemsInRoom.Length == 0)
         {
-            Debug.LogWarning("RoomCleanerManager: No trash items assigned in the array! Initialization stopped.");
+            Debug.LogWarning("RoomCleanerManager: No trash items assigned.");
             return;
         }
 
-        // Check for Raycaster on Camera (required for dragging)
-        if (Camera.main != null && Camera.main.GetComponent<UnityEngine.EventSystems.Physics2DRaycaster>() == null)
-        {
-            Debug.LogWarning("RoomCleanerManager: Main Camera is missing a Physics2DRaycaster. Dragging will not work!");
-        }
+        if (Camera.main != null && Camera.main.GetComponent<Physics2DRaycaster>() == null)
+            Debug.LogWarning("RoomCleanerManager: Main Camera needs a Physics2DRaycaster for dragging.");
+
+        int initializedCount = 0;
 
         foreach (TrashItem item in trashItemsInRoom)
         {
-            if (item == null) continue;
+            if (item == null)
+                continue;
 
-            // 1. Save their exact position as their "start position"
             item.SetStartPosition(item.transform.position);
-            managedItems.Add(item);
 
-            // 2. Ensure they have a collider for dragging
-            Collider2D col = item.GetComponent<Collider2D>();
-            if (col == null)
-            {
-                col = item.gameObject.AddComponent<BoxCollider2D>();
-                Debug.Log($"RoomCleanerManager: Added BoxCollider2D to {item.name}");
-            }
+            if (item.GetComponent<Collider2D>() == null)
+                item.gameObject.AddComponent<BoxCollider2D>();
 
-
-            // 3. Force Rigidbody to Kinematic so they don't move unless dragged
             Rigidbody2D rb = item.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
@@ -66,18 +50,16 @@ public class RoomCleanerManager : MonoBehaviour
                 rb.linearVelocity = Vector2.zero;
                 rb.angularVelocity = 0f;
             }
+
+            initializedCount++;
         }
 
-        // 4. Disable any spawners
-        ObjectSpawner[] spawners = FindObjectsOfType<ObjectSpawner>();
-        foreach (var spawner in spawners)
-        {
+        foreach (ObjectSpawner spawner in FindObjectsOfType<ObjectSpawner>())
             spawner.enabled = false;
-        }
-
-        Debug.Log($"RoomCleanerManager: Successfully initialized {managedItems.Count} items.");
 
         if (UIManager.instance != null)
             UIManager.instance.ConfigureForRoomCleaning();
+
+        Debug.Log($"RoomCleanerManager: Initialized {initializedCount} items.");
     }
 }

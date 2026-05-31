@@ -8,7 +8,6 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
 
-
     [SerializeField] private Image[] hearts;
 
     [Header("UI Elements")]
@@ -16,7 +15,7 @@ public class UIManager : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text streakText;
 
-    [Header("Educational Panel Settings")]
+    [Header("Educational Panel")]
     public GameObject infoPanel;
     public TMP_Text infoHeaderText;
     public TMP_Text infoContentText;
@@ -26,27 +25,27 @@ public class UIManager : MonoBehaviour
     public int roomCleaningStartScore = 0;
 
     [Header("Game Settings")]
-
     public int maxConsecutiveErrors = 3;
 
-    private int currentErrorStreak = 0;
-    private int currentScore = 0;
-    private bool isGameOver = false;
+    private int currentErrorStreak;
+    private int currentScore;
+    private bool isGameOver;
 
     public bool IsGameOver => isGameOver;
 
     void Awake()
     {
-        if (instance == null) instance = this;
+        if (instance == null)
+            instance = this;
     }
 
     void Start()
     {
-        if (infoPanel != null) infoPanel.SetActive(false);
+        if (infoPanel != null)
+            infoPanel.SetActive(false);
         UpdateUI();
     }
 
-    // --- ZDOBYWANIE PUNKTÓW  ---
     public void AddScore(int amount)
     {
         if (amount > 0 && GameData.CurrentGameMode != GameData.GameMode.MultiBin)
@@ -66,22 +65,13 @@ public class UIManager : MonoBehaviour
         UpdateUI();
     }
 
-    // --- BŁĄD  ---
     public void AddMistake(TrashItem.TrashType problemType)
     {
-        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
-        {
-            ShowRoomCleaningWrongBin(problemType);
-            return;
-        }
-
         currentErrorStreak++;
         UpdateUI();
 
         if (currentErrorStreak >= maxConsecutiveErrors)
-        {
             ShowEducationalInfo(problemType);
-        }
     }
 
     public void HandleRoomCleaningResult(bool correct, TrashItem.TrashType trashType)
@@ -93,7 +83,11 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        ShowRoomCleaningWrongBin(trashType);
+        ShowFeedbackMessage("Zły Kosz!", Color.red);
+        AddScore(-1);
+
+        if (currentScore < 0)
+            EndRoomCleaningGame(trashType);
     }
 
     public void ConfigureForRoomCleaning()
@@ -117,45 +111,32 @@ public class UIManager : MonoBehaviour
         UpdateUI();
     }
 
-    void ShowRoomCleaningWrongBin(TrashItem.TrashType trashType)
-    {
-        ShowFeedbackMessage("Zły Kosz!", Color.red);
-        AddScore(-1);
-
-        if (currentScore < 0)
-            ShowGameOver(trashType);
-    }
-
-    void ShowGameOver(TrashItem.TrashType trashType)
+    void EndRoomCleaningGame(TrashItem.TrashType trashType)
     {
         isGameOver = true;
         StopAllCoroutines();
-        ShowEducationalInfo(trashType, pauseGame: true);
+        ShowEducationalInfo(trashType);
     }
 
-    // --- WYŚWIETLANIE INFORMACJI ---
     void ShowEducationalInfo(TrashItem.TrashType type)
-    {
-        ShowEducationalInfo(type, pauseGame: true);
-    }
-
-    void ShowEducationalInfo(TrashItem.TrashType type, bool pauseGame)
     {
         StopAllCoroutines();
 
         if (feedbackText != null)
-        {
             feedbackText.text = "";
-        }
 
-        if (pauseGame)
-            Time.timeScale = 0f;
-
+        Time.timeScale = 0f;
         UpdateUI();
 
-        string title = "";
-        string content = "";
+        GetEducationalContent(type, out string title, out string content);
 
+        if (infoHeaderText != null) infoHeaderText.text = title;
+        if (infoContentText != null) infoContentText.text = content;
+        if (infoPanel != null) infoPanel.SetActive(true);
+    }
+
+    static void GetEducationalContent(TrashItem.TrashType type, out string title, out string content)
+    {
         switch (type)
         {
             case TrashItem.TrashType.Plastic:
@@ -179,14 +160,8 @@ public class UIManager : MonoBehaviour
                 content = "Uważaj, gdzie wyrzucasz śmieci!";
                 break;
         }
-
-        if (infoHeaderText != null) infoHeaderText.text = title;
-        if (infoContentText != null) infoContentText.text = content;
-
-        if (infoPanel != null) infoPanel.SetActive(true);
     }
 
-    // --- PRZYCISKI ---
     public void ResumeGame()
     {
         if (isGameOver)
@@ -199,7 +174,8 @@ public class UIManager : MonoBehaviour
         currentErrorStreak = 0;
         UpdateUI();
 
-        if (infoPanel != null) infoPanel.SetActive(false);
+        if (infoPanel != null)
+            infoPanel.SetActive(false);
 
         if (Time.timeScale == 0f)
             Time.timeScale = 1f;
@@ -217,63 +193,55 @@ public class UIManager : MonoBehaviour
         SceneManager.LoadScene("CleanTheRoom");
     }
 
-    // --- AKTUALIZACJA TEKSTÓW NA EKRANIE ---
+    void UpdateUI()
+    {
+        if (GameData.CurrentGameMode != GameData.GameMode.MultiBin)
+            UpdateHealthBar();
+
+        if (scoreText != null)
+            scoreText.text = "Punkty: " + currentScore;
+
+        if (streakText != null && streakText.gameObject.activeSelf)
+        {
+            streakText.color = currentErrorStreak == 2 ? Color.red : Color.white;
+            streakText.text = $"Seria błędów: {currentErrorStreak} / {maxConsecutiveErrors}";
+        }
+    }
 
     void UpdateHealthBar()
     {
         for (int i = 0; i < hearts.Length; i++)
         {
-            if (i < (maxConsecutiveErrors - currentErrorStreak))
-            {
-                hearts[i].enabled = true;
-            }
-            else
-            {
-                hearts[i].enabled = false;
-            }
-        }
-    }
-
-    void UpdateUI()
-    {
-
-        UpdateHealthBar();
-
-        if (scoreText != null)
-            scoreText.text = "Punkty: " + currentScore;
-
-        if (streakText != null)
-        {
-            if (currentErrorStreak == 2) streakText.color = Color.red;
-            else streakText.color = Color.white;
-
-            streakText.text = $"Seria błędów: {currentErrorStreak} / {maxConsecutiveErrors}";
+            if (hearts[i] != null)
+                hearts[i].enabled = i < maxConsecutiveErrors - currentErrorStreak;
         }
     }
 
     public void ShowFeedbackMessage(string message, Color color)
     {
-        if (feedbackText != null)
-        {
-            feedbackText.text = message;
-            feedbackText.color = color;
-            StopAllCoroutines();
-            StartCoroutine(FadeText(color));
-        }
+        if (feedbackText == null)
+            return;
+
+        feedbackText.text = message;
+        feedbackText.color = color;
+        StopAllCoroutines();
+        StartCoroutine(FadeText(color));
     }
 
-    private IEnumerator FadeText(Color startColor)
+    IEnumerator FadeText(Color startColor)
     {
         feedbackText.color = startColor;
-        float timer = 0;
-        float duration = 1.5f;
+        float timer = 0f;
+        const float duration = 1.5f;
+
         while (timer < duration)
         {
             timer += Time.deltaTime;
-            float alpha = Mathf.Lerp(1, 0, timer / duration);
+            float alpha = Mathf.Lerp(1f, 0f, timer / duration);
             feedbackText.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
             yield return null;
         }
-        feedbackText.color = new Color(startColor.r, startColor.g, startColor.b, 0);
+
+        feedbackText.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
     }
 }
