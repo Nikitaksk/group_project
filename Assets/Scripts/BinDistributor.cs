@@ -30,7 +30,6 @@ public class BinDistributor : MonoBehaviour
         Camera cam = Camera.main;
         if (cam == null) return;
 
-        // 2. Calculate Screen and Available Space
         float screenHeightWorld = 2f * cam.orthographicSize;
         float screenWidthWorld = screenHeightWorld * cam.aspect;
 
@@ -41,7 +40,6 @@ public class BinDistributor : MonoBehaviour
         float totalAvailableWidth = screenWidthWorld - (2 * edgePadding) - ((n - 1) * spacingBetweenBins);
         float targetWorldWidthPerBin = totalAvailableWidth / n;
 
-        // 3. Resize and Position Bins
         float currentX = -screenWidthWorld / 2f + edgePadding;
 
         for (int i = 0; i < n; i++)
@@ -51,25 +49,17 @@ public class BinDistributor : MonoBehaviour
             SpriteRenderer sr = bins[i].GetComponentInChildren<SpriteRenderer>();
             if (sr != null && sr.sprite != null)
             {
-                // To make them the "same size", we calculate the scale needed to reach targetWorldWidthPerBin
-                // Scale = TargetWorldWidth / NativeSpriteWidth
                 float nativeWidth = sr.sprite.bounds.size.x;
                 float targetScale = targetWorldWidthPerBin / nativeWidth;
 
-                // Clamp to prevent them from becoming too massive if there's only 1 bin
                 targetScale = Mathf.Min(targetScale, maxScaleMultiplier);
 
                 bins[i].transform.localScale = new Vector3(targetScale, targetScale, 1f);
 
-                // Recalculate actual width after scaling (it might be clamped)
                 float actualWorldWidth = nativeWidth * targetScale;
-
-                // Position: CurrentX is the left edge of where the bin should go
-                // We set transform.position (center) to CurrentX + HalfWidth
                 float xPos = currentX + (actualWorldWidth / 2f);
                 bins[i].transform.position = new Vector3(xPos, yPosition, bins[i].transform.position.z);
 
-                // Move currentX forward for the next bin: Add this bin's width and the spacing
                 currentX += actualWorldWidth + spacingBetweenBins;
             }
         }

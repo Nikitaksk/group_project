@@ -2,39 +2,33 @@ using UnityEngine;
 
 public class BinLoader : MonoBehaviour
 {
-    [Header("Array of Bins")]
     public GameObject[] bins;
 
     void Start()
     {
         if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
         {
-            foreach (GameObject bin in bins)
-            {
-                if (bin != null) bin.SetActive(true);
-            }
-            Debug.Log("Activated all bins for MultiBin mode.");
+            SetAllBinsActive(true);
+            return;
         }
-        else
+
+        int index = GameData.SelectedBinIndex;
+        if (index < 0 || index >= bins.Length)
         {
-            // get index from static variable
-            int indexToActivate = GameData.SelectedBinIndex;
+            Debug.LogError("BinLoader: Invalid bin index " + index);
+            return;
+        }
 
-            if (indexToActivate < bins.Length && indexToActivate >= 0)
-            {
-                // Deactivate all first (optional but safer if some are pre-active)
-                foreach (GameObject bin in bins)
-                {
-                    if (bin != null) bin.SetActive(false);
-                }
+        SetAllBinsActive(false);
+        bins[index].SetActive(true);
+    }
 
-                bins[indexToActivate].SetActive(true);
-                Debug.Log("Activated bin: " + indexToActivate);
-            }
-            else
-            {
-                Debug.LogError("Error while activating bin!");
-            }
+    void SetAllBinsActive(bool active)
+    {
+        foreach (GameObject bin in bins)
+        {
+            if (bin != null)
+                bin.SetActive(active);
         }
     }
 }

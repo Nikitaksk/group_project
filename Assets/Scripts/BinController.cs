@@ -1,14 +1,15 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[RequireComponent(typeof(BoxCollider2D))] // Bins need a collider to detect trash
-public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+[RequireComponent(typeof(BoxCollider2D))]
+public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler
 {
-    public TrashItem.TrashType acceptedTrashType; // Set this in the Inspector for each bin
-    public SpriteRenderer binSpriteRenderer;     // Assign this for boundary calculations
+    public TrashItem.TrashType acceptedTrashType;
+    public SpriteRenderer binSpriteRenderer;
 
-    private Vector3 dragOffset; // Offset for smooth dragging
-    private float minX, maxX; // Boundaries for horizontal dragging
+    private Vector3 dragOffset;
+    private float minX;
+    private float maxX;
 
     void Start()
     {
@@ -17,72 +18,61 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
             binSpriteRenderer = GetComponent<SpriteRenderer>();
             if (binSpriteRenderer == null)
             {
-                Debug.LogError("BinController: No SpriteRenderer found on this GameObject or assigned. Cannot calculate dragging boundaries.");
-                enabled = false; // Disable script if no renderer
+                Debug.LogError("BinController: SpriteRenderer required on " + gameObject.name);
+                enabled = false;
                 return;
             }
         }
 
-        // Calculate dragging boundaries based on screen edges and bin's width
         float screenHalfWidth = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, 0)).x;
         float binHalfWidth = binSpriteRenderer.bounds.extents.x;
+        minX = -screenHalfWidth + binHalfWidth;
+        maxX = screenHalfWidth - binHalfWidth;
 
-        minX = -screenHalfWidth + binHalfWidth; // Left edge of screen
-        maxX = screenHalfWidth - binHalfWidth;  // Right edge of screen
-
-        // Ensure the collider is a trigger
         BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
-        if (boxCollider != null && !boxCollider.isTrigger)
-        {
-            Debug.LogWarning("BinController: Collider on " + gameObject.name + " is not a trigger. Setting to trigger.");
+        if (!boxCollider.isTrigger)
             boxCollider.isTrigger = true;
-        }
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        // Calculate the offset between the object's position and the pointer's world position.
-        Vector3 pointerWorldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
-        dragOffset = transform.position - pointerWorldPosition;
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            return;
+
+        Vector3 pointerWorld = Camera.main.ScreenToWorldPoint(eventData.position);
+        dragOffset = transform.position - pointerWorld;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin) return;
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            return;
 
-        // Get the pointer's current world position and apply the offset.
-        Vector3 pointerWorldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
-        Vector3 targetPosition = pointerWorldPosition + dragOffset;
-
-        // Clamp the movement to the horizontal axis and within screen bounds.
-        float newX = Mathf.Clamp(targetPosition.x, minX, maxX);
+        Vector3 pointerWorld = Camera.main.ScreenToWorldPoint(eventData.position);
+        float newX = Mathf.Clamp(pointerWorld.x + dragOffset.x, minX, maxX);
         transform.position = new Vector3(newX, transform.position.y, transform.position.z);
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        // Dragging has finished. We don't need to do anything here because the
-        // OnTriggerEnter2D handles the collection logic automatically.
-        // You could add sound effects here if you wanted.
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         TrashItem trash = other.GetComponent<TrashItem>();
-        if (trash != null)
+        if (trash == null)
+            return;
+
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin || trash.IsDragging)
+            return;
+
+        if (acceptedTrashType == trash.trashType)
         {
-            if (acceptedTrashType == trash.trashType)
-            {
-                UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
-                UIManager.instance.AddScore(1);
-            }
-            else
-            {
-                UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
-                UIManager.instance.AddScore(-1);
-                UIManager.instance.AddMistake(acceptedTrashType);
-            }
+            UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
+            UIManager.instance.AddScore(1);
             Destroy(other.gameObject);
+        }
+        else
+        {
+            UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
+            UIManager.instance.AddScore(-1);
+            UIManager.instance.AddMistake(trash.trashType);
         }
     }
 }
