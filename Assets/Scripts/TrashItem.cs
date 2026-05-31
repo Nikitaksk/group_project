@@ -52,6 +52,11 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin &&
+            UIManager.instance != null &&
+            UIManager.instance.IsGameOver)
+            return;
+
         isDragging = true;
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(eventData.position);
         mousePos.z = 0;
@@ -76,15 +81,25 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
         {
             if (bin.acceptedTrashType == trashType)
             {
-                UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
-                UIManager.instance.AddScore(1);
+                if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+                    UIManager.instance.HandleRoomCleaningResult(true, trashType);
+                else
+                {
+                    UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
+                    UIManager.instance.AddScore(1);
+                }
                 Destroy(gameObject);
             }
             else
             {
-                UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
-                UIManager.instance.AddScore(-1);
-                UIManager.instance.AddMistake(trashType);
+                if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+                    UIManager.instance.HandleRoomCleaningResult(false, trashType);
+                else
+                {
+                    UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
+                    UIManager.instance.AddScore(-1);
+                    UIManager.instance.AddMistake(trashType);
+                }
                 ReturnToStart();
             }
         }

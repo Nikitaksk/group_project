@@ -76,5 +76,8 @@ public class RoomCleanerManager : MonoBehaviour
         }
 
         Debug.Log($"RoomCleanerManager: Successfully initialized {managedItems.Count} items.");
+
+        if (UIManager.instance != null)
+            UIManager.instance.ConfigureForRoomCleaning();
     }
 }

@@ -21,12 +21,19 @@ public class UIManager : MonoBehaviour
     public TMP_Text infoHeaderText;
     public TMP_Text infoContentText;
 
+    [Header("Room Cleaning")]
+    [Tooltip("Starting score in Clean The Room mode.")]
+    public int roomCleaningStartScore = 0;
+
     [Header("Game Settings")]
 
     public int maxConsecutiveErrors = 3;
 
     private int currentErrorStreak = 0;
     private int currentScore = 0;
+    private bool isGameOver = false;
+
+    public bool IsGameOver => isGameOver;
 
     void Awake()
     {
@@ -42,14 +49,19 @@ public class UIManager : MonoBehaviour
     // --- ZDOBYWANIE PUNKTÓW  ---
     public void AddScore(int amount)
     {
-
-        if (amount > 0)
-        {
+        if (amount > 0 && GameData.CurrentGameMode != GameData.GameMode.MultiBin)
             currentErrorStreak = 0;
-        }
 
         currentScore += amount;
-        if (currentScore < 0) currentScore = 0;
+
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+        {
+            UpdateUI();
+            return;
+        }
+
+        if (currentScore < 0)
+            currentScore = 0;
 
         UpdateUI();
     }
@@ -57,9 +69,14 @@ public class UIManager : MonoBehaviour
     // --- BŁĄD  ---
     public void AddMistake(TrashItem.TrashType problemType)
     {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+        {
+            ShowRoomCleaningWrongBin(problemType);
+            return;
+        }
+
         currentErrorStreak++;
         UpdateUI();
-
 
         if (currentErrorStreak >= maxConsecutiveErrors)
         {
@@ -67,8 +84,62 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void HandleRoomCleaningResult(bool correct, TrashItem.TrashType trashType)
+    {
+        if (correct)
+        {
+            ShowFeedbackMessage("Dobrze!", Color.green);
+            AddScore(1);
+            return;
+        }
+
+        ShowRoomCleaningWrongBin(trashType);
+    }
+
+    public void ConfigureForRoomCleaning()
+    {
+        currentErrorStreak = 0;
+        currentScore = roomCleaningStartScore;
+        isGameOver = false;
+
+        if (infoPanel != null)
+            infoPanel.SetActive(false);
+
+        if (streakText != null)
+            streakText.gameObject.SetActive(false);
+
+        foreach (Image heart in hearts)
+        {
+            if (heart != null)
+                heart.gameObject.SetActive(false);
+        }
+
+        UpdateUI();
+    }
+
+    void ShowRoomCleaningWrongBin(TrashItem.TrashType trashType)
+    {
+        ShowFeedbackMessage("Zły Kosz!", Color.red);
+        AddScore(-1);
+
+        if (currentScore < 0)
+            ShowGameOver(trashType);
+    }
+
+    void ShowGameOver(TrashItem.TrashType trashType)
+    {
+        isGameOver = true;
+        StopAllCoroutines();
+        ShowEducationalInfo(trashType, pauseGame: true);
+    }
+
     // --- WYŚWIETLANIE INFORMACJI ---
     void ShowEducationalInfo(TrashItem.TrashType type)
+    {
+        ShowEducationalInfo(type, pauseGame: true);
+    }
+
+    void ShowEducationalInfo(TrashItem.TrashType type, bool pauseGame)
     {
         StopAllCoroutines();
 
@@ -77,7 +148,9 @@ public class UIManager : MonoBehaviour
             feedbackText.text = "";
         }
 
-        Time.timeScale = 0f;
+        if (pauseGame)
+            Time.timeScale = 0f;
+
         UpdateUI();
 
         string title = "";
@@ -116,17 +189,32 @@ public class UIManager : MonoBehaviour
     // --- PRZYCISKI ---
     public void ResumeGame()
     {
+        if (isGameOver)
+        {
+            if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+                RestartRoomCleaning();
+            return;
+        }
+
         currentErrorStreak = 0;
         UpdateUI();
 
         if (infoPanel != null) infoPanel.SetActive(false);
-        Time.timeScale = 1f;
+
+        if (Time.timeScale == 0f)
+            Time.timeScale = 1f;
     }
 
     public void ReturnToMenu()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("SecondaryMenu");
+    }
+
+    public void RestartRoomCleaning()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("CleanTheRoom");
     }
 
     // --- AKTUALIZACJA TEKSTÓW NA EKRANIE ---
