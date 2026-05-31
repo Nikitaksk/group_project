@@ -26,6 +26,7 @@ public class RoomCleanerManager : MonoBehaviour
     [ContextMenu("Setup Cleaning Mode")]
     public void SetupRoomCleaning()
     {
+        GameData.CurrentGameMode = GameData.GameMode.MultiBin;
         managedItems.Clear();
 
         if (trashItemsInRoom == null || trashItemsInRoom.Length == 0)

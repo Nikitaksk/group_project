@@ -39,8 +39,16 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         }
     }
 
+    private bool CanDragBin()
+    {
+        return GameData.CurrentGameMode != GameData.GameMode.MultiBin;
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (!CanDragBin())
+            return;
+
         // Calculate the offset between the object's position and the pointer's world position.
         Vector3 pointerWorldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         dragOffset = transform.position - pointerWorldPosition;
@@ -48,7 +56,8 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin) return;
+        if (!CanDragBin())
+            return;
 
         // Get the pointer's current world position and apply the offset.
         Vector3 pointerWorldPosition = Camera.main.ScreenToWorldPoint(eventData.position);
