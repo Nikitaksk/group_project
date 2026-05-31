@@ -18,6 +18,7 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
     private Vector3 startPosition;
     private Vector3 dragOffset;
     private bool isDragging = false;
+    public bool IsDragging => isDragging;
     private bool startPositionSet = false;
     private float destroyY = -10f; // Lowered for room cleaning mode
 
@@ -101,12 +102,19 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     private BinController FindOverlappingBin()
     {
-        // Use a small overlap circle to see if we are over a bin's collider
-        Collider2D hit = Physics2D.OverlapPoint(transform.position);
-        if (hit != null)
+        const float probeRadius = 0.2f;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, probeRadius);
+
+        foreach (Collider2D hit in hits)
         {
-            return hit.GetComponent<BinController>();
+            if (hit.gameObject == gameObject)
+                continue;
+
+            BinController bin = hit.GetComponent<BinController>();
+            if (bin != null)
+                return bin;
         }
+
         return null;
     }
 

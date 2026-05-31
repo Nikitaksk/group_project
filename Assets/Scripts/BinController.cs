@@ -69,20 +69,24 @@ public class BinController : MonoBehaviour, IPointerDownHandler, IDragHandler, I
     void OnTriggerEnter2D(Collider2D other)
     {
         TrashItem trash = other.GetComponent<TrashItem>();
-        if (trash != null)
+        if (trash == null)
+            return;
+
+        // Room cleaning: validate on drop in TrashItem, not while passing through triggers.
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin || trash.IsDragging)
+            return;
+
+        if (acceptedTrashType == trash.trashType)
         {
-            if (acceptedTrashType == trash.trashType)
-            {
-                UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
-                UIManager.instance.AddScore(1);
-            }
-            else
-            {
-                UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
-                UIManager.instance.AddScore(-1);
-                UIManager.instance.AddMistake(acceptedTrashType);
-            }
+            UIManager.instance.ShowFeedbackMessage("Dobrze!", Color.green);
+            UIManager.instance.AddScore(1);
             Destroy(other.gameObject);
+        }
+        else
+        {
+            UIManager.instance.ShowFeedbackMessage("Zły Kosz!", Color.red);
+            UIManager.instance.AddScore(-1);
+            UIManager.instance.AddMistake(trash.trashType);
         }
     }
 }
