@@ -20,6 +20,12 @@ public class UIManager : MonoBehaviour
     public TMP_Text infoHeaderText;
     public TMP_Text infoContentText;
 
+    // --- NOWA SEKCJA: EKRAN WYGRANEJ ---
+    [Header("Win Panel Settings")]
+    public GameObject winPanel;
+    public TMP_Text finalScoreText;
+    // -----------------------------------
+
     [Header("Room Cleaning")]
     [Tooltip("Starting score in Clean The Room mode.")]
     public int roomCleaningStartScore = 0;
@@ -33,6 +39,10 @@ public class UIManager : MonoBehaviour
 
     public bool IsGameOver => isGameOver;
 
+    // --- NOWA ZMIENNA: Ilość śmieci w pokoju ---
+    private int trashRemainingInRoom;
+    // ------------------------------------------
+
     void Awake()
     {
         if (instance == null)
@@ -43,6 +53,12 @@ public class UIManager : MonoBehaviour
     {
         if (infoPanel != null)
             infoPanel.SetActive(false);
+
+        // --- Ukrywamy ekran wygranej na starcie ---
+        if (winPanel != null)
+            winPanel.SetActive(false);
+        // ------------------------------------------
+
         UpdateUI();
     }
 
@@ -80,6 +96,14 @@ public class UIManager : MonoBehaviour
         {
             ShowFeedbackMessage("Dobrze!", Color.green);
             AddScore(1);
+
+            // --- AKTUALIZACJA POSTĘPU W SPRZĄTANIU ---
+            trashRemainingInRoom--;
+            if (trashRemainingInRoom <= 0)
+            {
+                ShowWinScreen();
+            }
+            // -----------------------------------------
             return;
         }
 
@@ -99,6 +123,9 @@ public class UIManager : MonoBehaviour
         if (infoPanel != null)
             infoPanel.SetActive(false);
 
+        if (winPanel != null)
+            winPanel.SetActive(false);
+
         if (streakText != null)
             streakText.gameObject.SetActive(false);
 
@@ -107,6 +134,11 @@ public class UIManager : MonoBehaviour
             if (heart != null)
                 heart.gameObject.SetActive(false);
         }
+
+        // --- POLICZ ŚMIECI NA STARCIE POKOJU ---
+        TrashItem[] allTrash = FindObjectsOfType<TrashItem>();
+        trashRemainingInRoom = allTrash.Length;
+        // ---------------------------------------
 
         UpdateUI();
     }
@@ -117,6 +149,22 @@ public class UIManager : MonoBehaviour
         StopAllCoroutines();
         ShowEducationalInfo(trashType);
     }
+
+    // --- NOWA FUNKCJA: POKAŻ EKRAN WYGRANEJ ---
+    private void ShowWinScreen()
+    {
+        isGameOver = true;
+
+        if (winPanel != null)
+            winPanel.SetActive(true);
+
+        if (finalScoreText != null)
+            finalScoreText.text = "Zdobyte punkty: " + currentScore;
+
+        // Możesz tu zatrzymać czas, jeśli chcesz
+        // Time.timeScale = 0f; 
+    }
+    // ------------------------------------------
 
     void ShowEducationalInfo(TrashItem.TrashType type)
     {
