@@ -20,6 +20,10 @@ public class UIManager : MonoBehaviour
     public TMP_Text infoHeaderText;
     public TMP_Text infoContentText;
 
+    [Header("Win Panel Settings")]
+    public GameObject winPanel;
+    public TMP_Text finalScoreText;
+
     [Header("Room Cleaning")]
     [Tooltip("Starting score in Clean The Room mode.")]
     public int roomCleaningStartScore = 0;
@@ -29,7 +33,9 @@ public class UIManager : MonoBehaviour
 
     private int currentErrorStreak;
     private int currentScore;
+    private int trashRemainingInRoom;
     private bool isGameOver;
+    private bool isWinScreen;
 
     public bool IsGameOver => isGameOver;
 
@@ -43,6 +49,10 @@ public class UIManager : MonoBehaviour
     {
         if (infoPanel != null)
             infoPanel.SetActive(false);
+
+        if (winPanel != null)
+            winPanel.SetActive(false);
+
         UpdateUI();
     }
 
@@ -80,6 +90,11 @@ public class UIManager : MonoBehaviour
         {
             ShowFeedbackMessage("Dobrze!", Color.green);
             AddScore(1);
+
+            trashRemainingInRoom--;
+            if (trashRemainingInRoom <= 0)
+                ShowWinScreen();
+
             return;
         }
 
@@ -95,9 +110,13 @@ public class UIManager : MonoBehaviour
         currentErrorStreak = 0;
         currentScore = roomCleaningStartScore;
         isGameOver = false;
+        isWinScreen = false;
 
         if (infoPanel != null)
             infoPanel.SetActive(false);
+
+        if (winPanel != null)
+            winPanel.SetActive(false);
 
         if (streakText != null)
             streakText.gameObject.SetActive(false);
@@ -108,12 +127,55 @@ public class UIManager : MonoBehaviour
                 heart.gameObject.SetActive(false);
         }
 
+        trashRemainingInRoom = CountActiveTrashItems();
+
         UpdateUI();
+    }
+
+    static int CountActiveTrashItems()
+    {
+        int count = 0;
+
+        foreach (TrashItem item in FindObjectsOfType<TrashItem>())
+        {
+            if (item != null && item.gameObject.activeInHierarchy)
+                count++;
+        }
+
+        return count;
+    }
+
+    void ShowWinScreen()
+    {
+        isGameOver = true;
+        isWinScreen = true;
+        StopAllCoroutines();
+
+        if (feedbackText != null)
+            feedbackText.text = "";
+
+        if (winPanel != null)
+        {
+            winPanel.SetActive(true);
+
+            if (finalScoreText != null)
+                finalScoreText.text = "Zdobyte punkty: " + currentScore;
+
+            return;
+        }
+
+        if (infoHeaderText != null)
+            infoHeaderText.text = "Gratulacje!";
+        if (infoContentText != null)
+            infoContentText.text = "Uporządkowałeś pokój!\n\nZdobyte punkty: " + currentScore;
+        if (infoPanel != null)
+            infoPanel.SetActive(true);
     }
 
     void EndRoomCleaningGame(TrashItem.TrashType trashType)
     {
         isGameOver = true;
+        isWinScreen = false;
         StopAllCoroutines();
         ShowEducationalInfo(trashType);
     }
@@ -167,7 +229,12 @@ public class UIManager : MonoBehaviour
         if (isGameOver)
         {
             if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
-                RestartRoomCleaning();
+            {
+                if (isWinScreen)
+                    ReturnToMenu();
+                else
+                    RestartRoomCleaning();
+            }
             return;
         }
 
