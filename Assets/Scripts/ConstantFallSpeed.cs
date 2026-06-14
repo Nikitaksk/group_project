@@ -24,12 +24,22 @@ public class ConstantFallSpeed : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
+        if (!collision.gameObject.CompareTag("Ground"))
+            return;
+
+        TrashItem trash = GetComponent<TrashItem>();
+        if (trash != null)
+            trash.NotifyMissedBeforeDestroy();
+        else
             Destroy(gameObject);
     }
 
     void OnBecameInvisible()
     {
-        Destroy(gameObject);
+        TrashItem trash = GetComponent<TrashItem>();
+        if (trash != null)
+            trash.NotifyMissedBeforeDestroy();
+        else
+            Destroy(gameObject);
     }
 }

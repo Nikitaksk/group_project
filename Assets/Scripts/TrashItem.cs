@@ -18,6 +18,7 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
     private Vector3 dragOffset;
     private bool isDragging;
     private bool startPositionSet;
+    private bool missHandled;
     private const float DestroyY = -10f;
     private const float BinProbeRadius = 0.2f;
 
@@ -38,10 +39,21 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
             return;
 
         if (transform.position.y < DestroyY)
-        {
-            CheckIfMissed();
-            Destroy(gameObject);
-        }
+            DestroyWithMissCheck();
+    }
+
+    public void NotifyMissedBeforeDestroy()
+    {
+        if (GameData.CurrentGameMode == GameData.GameMode.MultiBin)
+            return;
+
+        DestroyWithMissCheck();
+    }
+
+    void DestroyWithMissCheck()
+    {
+        CheckIfMissed();
+        Destroy(gameObject);
     }
 
     public void SetStartPosition(Vector3 pos)
@@ -148,10 +160,15 @@ public class TrashItem : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoin
 
     void CheckIfMissed()
     {
+        if (missHandled)
+            return;
+
         foreach (BinController bin in FindObjectsOfType<BinController>())
         {
             if (!bin.gameObject.activeInHierarchy || trashType != bin.acceptedTrashType)
                 continue;
+
+            missHandled = true;
 
             if (UIManager.instance != null)
             {
